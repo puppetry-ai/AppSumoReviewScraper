@@ -57,7 +57,7 @@ async function scrapeReviews(url: string): Promise<Review[]> {
       // Example: Member since: Nov 2023, Deals bought: 60, Posted: May 12, 2024
       const dateElement = el.querySelectorAll(
         '[data-testid="discussion-review-info"] span'
-      )[2] as HTMLElement;
+      )[3] as HTMLElement;
 
       const ratingStars = Array.from(
         el.querySelectorAll('.relative.mr-2 img')

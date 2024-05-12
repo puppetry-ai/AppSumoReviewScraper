@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const puppeteer_1 = __importDefault(require("puppeteer"));
+const fs_1 = __importDefault(require("fs"));
 function scrapeReviews(url) {
     return __awaiter(this, void 0, void 0, function* () {
         const browser = yield puppeteer_1.default.launch({
@@ -36,14 +37,18 @@ function scrapeReviews(url) {
         });
         const reviews = yield page.evaluate(() => {
             const reviewElements = Array.from(document.querySelectorAll('[data-testid="review-card-wrapper"]'));
+            // This works as of May 12, 2024
             return reviewElements.map((el) => {
                 var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                // First link is the image link, second link is the profile link
                 const usernameElement = el.querySelectorAll('[data-testid="discussion-user-info"] a')[1];
                 const imageElement = el.querySelector('[data-testid="discussion-user-info"] img');
                 const titleElement = el.querySelector('.font-header');
                 const textElement = el.querySelector('[data-testid="toggle-text"] p');
-                const dateElement = el.querySelectorAll('[data-testid="discussion-review-info"] span')[1];
+                // Example: Member since: Nov 2023, Deals bought: 60, Posted: May 12, 2024
+                const dateElement = el.querySelectorAll('[data-testid="discussion-review-info"] span')[3];
                 const ratingStars = Array.from(el.querySelectorAll('.relative.mr-2 img')).map((img) => img.alt);
+                // Use Alt-Text to extracct the rating value (Taco value)
                 const rating = ratingStars
                     .filter((alt) => alt.includes('stars'))
                     .map((alt) => parseInt(alt))[0];
@@ -64,10 +69,28 @@ function scrapeReviews(url) {
 // Use this function to save the reviews as JSON
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const url = 'https://appsumo.com/products/puppetry/reviews/?page=1';
+        // Read the URL from the command line argument if provided
+        // Otherwise, use the default URL
+        const url = process.argv[2] || 'https://appsumo.com/products/puppetry';
         console.log(`Scraping reviews from ${url}`);
-        const reviews = yield scrapeReviews(url);
-        console.log(JSON.stringify(reviews, null, 2));
+        let page = 1;
+        let reviews = [];
+        while (true) {
+            const reviewURL = `${url}/reviews/?page=${page}`;
+            try {
+                const pageReviews = yield scrapeReviews(reviewURL);
+                reviews = reviews.concat(pageReviews);
+                console.log(`Scraped ${pageReviews.length} reviews from page ${page}`);
+                page++;
+            }
+            catch (error) {
+                console.error(error);
+                break;
+            }
+        }
+        const prductName = url.split('/')[4];
+        fs_1.default.writeFileSync(`${prductName}.json`, JSON.stringify(reviews, null, 2));
+        console.log(`Reviews saved to ${prductName}.json`);
     });
 }
 main();
