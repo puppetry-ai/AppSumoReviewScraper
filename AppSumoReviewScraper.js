@@ -36,18 +36,23 @@ function scrapeReviews(url) {
         });
         const reviews = yield page.evaluate(() => {
             const reviewElements = Array.from(document.querySelectorAll('[data-testid="review-card-wrapper"]'));
-            console.log(`Found ${reviewElements.length} review elements`);
             return reviewElements.map((el) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-                return ({
-                    username: (_c = (_b = (_a = el
-                        .querySelector('[data-testid="discussion-user-info"] a')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.trim()) !== null && _c !== void 0 ? _c : 'No username',
-                    reviewTitle: (_f = (_e = (_d = el.querySelector('.font-header')) === null || _d === void 0 ? void 0 : _d.textContent) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : 'No title',
-                    reviewText: (_j = (_h = (_g = el
-                        .querySelector('[data-testid="toggle-text"] p')) === null || _g === void 0 ? void 0 : _g.textContent) === null || _h === void 0 ? void 0 : _h.trim()) !== null && _j !== void 0 ? _j : 'No review text',
-                    postedDate: (_m = (_l = (_k = el
-                        .querySelector('[data-testid="discussion-review-info"] span')) === null || _k === void 0 ? void 0 : _k.textContent) === null || _l === void 0 ? void 0 : _l.replace('Posted:', '').trim()) !== null && _m !== void 0 ? _m : 'No date',
-                });
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                const usernameElement = el.querySelector('[data-testid="discussion-user-info"] a');
+                const imageElement = el.querySelector('[data-testid="discussion-user-info"] img');
+                const titleElement = el.querySelector('.font-header');
+                const textElement = el.querySelector('[data-testid="toggle-text"] p');
+                const dateElement = el.querySelector('[data-testid="discussion-review-info"] span');
+                return {
+                    username: (_b = (_a = usernameElement === null || usernameElement === void 0 ? void 0 : usernameElement.textContent) === null || _a === void 0 ? void 0 : _a.trim()) !== null && _b !== void 0 ? _b : 'No username',
+                    userProfilePicture: (_c = imageElement === null || imageElement === void 0 ? void 0 : imageElement.src) !== null && _c !== void 0 ? _c : '',
+                    reviewTitle: (_e = (_d = titleElement === null || titleElement === void 0 ? void 0 : titleElement.textContent) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : 'No title',
+                    reviewText: (_g = (_f = textElement === null || textElement === void 0 ? void 0 : textElement.textContent) === null || _f === void 0 ? void 0 : _f.trim()) !== null && _g !== void 0 ? _g : 'No review text',
+                    rating: Array.from(el.querySelectorAll('.relative.mr-2 img'))
+                        .map((img) => img.src)
+                        .join(', '),
+                    postedDate: (_j = (_h = dateElement === null || dateElement === void 0 ? void 0 : dateElement.textContent) === null || _h === void 0 ? void 0 : _h.replace('Posted:', '').trim()) !== null && _j !== void 0 ? _j : 'No date',
+                };
             });
         });
         yield browser.close();

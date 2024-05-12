@@ -2,8 +2,10 @@ import puppeteer from 'puppeteer';
 
 interface Review {
   username: string;
+  userProfilePicture: string;
   reviewTitle: string;
   reviewText: string;
+  rating: string;
   postedDate: string;
 }
 
@@ -36,25 +38,33 @@ async function scrapeReviews(url: string): Promise<Review[]> {
     const reviewElements = Array.from(
       document.querySelectorAll('[data-testid="review-card-wrapper"]')
     );
+    return reviewElements.map((el) => {
+      const usernameElement = el.querySelector(
+        '[data-testid="discussion-user-info"] a'
+      ) as HTMLElement;
+      const imageElement = el.querySelector(
+        '[data-testid="discussion-user-info"] img'
+      ) as HTMLImageElement;
+      const titleElement = el.querySelector('.font-header') as HTMLElement;
+      const textElement = el.querySelector(
+        '[data-testid="toggle-text"] p'
+      ) as HTMLElement;
+      const dateElement = el.querySelector(
+        '[data-testid="discussion-review-info"] span'
+      ) as HTMLElement;
 
-    console.log(`Found ${reviewElements.length} review elements`);
-    return reviewElements.map((el) => ({
-      username:
-        el
-          .querySelector('[data-testid="discussion-user-info"] a')
-          ?.textContent?.trim() ?? 'No username',
-      reviewTitle:
-        el.querySelector('.font-header')?.textContent?.trim() ?? 'No title',
-      reviewText:
-        el
-          .querySelector('[data-testid="toggle-text"] p')
-          ?.textContent?.trim() ?? 'No review text',
-      postedDate:
-        el
-          .querySelector('[data-testid="discussion-review-info"] span')
-          ?.textContent?.replace('Posted:', '')
-          .trim() ?? 'No date',
-    }));
+      return {
+        username: usernameElement?.textContent?.trim() ?? 'No username',
+        userProfilePicture: imageElement?.src ?? '',
+        reviewTitle: titleElement?.textContent?.trim() ?? 'No title',
+        reviewText: textElement?.textContent?.trim() ?? 'No review text',
+        rating: Array.from(el.querySelectorAll('.relative.mr-2 img'))
+          .map((img) => (img as HTMLImageElement).src)
+          .join(', '),
+        postedDate:
+          dateElement?.textContent?.replace('Posted:', '').trim() ?? 'No date',
+      };
+    });
   });
 
   await browser.close();
