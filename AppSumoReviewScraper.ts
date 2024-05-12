@@ -7,7 +7,6 @@ interface Review {
   reviewTitle: string;
   reviewText: string;
   rating: number;
-  postedDate: string;
 }
 
 async function scrapeReviews(url: string): Promise<Review[]> {
@@ -54,11 +53,6 @@ async function scrapeReviews(url: string): Promise<Review[]> {
         '[data-testid="toggle-text"] p'
       ) as HTMLElement;
 
-      // Example: Member since: Nov 2023, Deals bought: 60, Posted: May 12, 2024
-      const dateElement = el.querySelectorAll(
-        '[data-testid="discussion-review-info"] span'
-      )[3] as HTMLElement;
-
       const ratingStars = Array.from(
         el.querySelectorAll('.relative.mr-2 img')
       ).map((img) => (img as HTMLImageElement).alt);
@@ -74,8 +68,7 @@ async function scrapeReviews(url: string): Promise<Review[]> {
         reviewTitle: titleElement?.textContent?.trim() ?? 'No title',
         reviewText: textElement?.textContent?.trim() ?? 'No review text',
         rating: rating,
-        postedDate:
-          dateElement?.textContent?.replace('Posted:', '').trim() ?? 'No date',
+        sourceUrl: url,
       };
     });
   });
