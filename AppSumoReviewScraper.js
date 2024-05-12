@@ -39,14 +39,12 @@ function scrapeReviews(url) {
             const reviewElements = Array.from(document.querySelectorAll('[data-testid="review-card-wrapper"]'));
             // This works as of May 12, 2024
             return reviewElements.map((el) => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                var _a, _b, _c, _d, _e, _f, _g;
                 // First link is the image link, second link is the profile link
                 const usernameElement = el.querySelectorAll('[data-testid="discussion-user-info"] a')[1];
                 const imageElement = el.querySelector('[data-testid="discussion-user-info"] img');
                 const titleElement = el.querySelector('.font-header');
                 const textElement = el.querySelector('[data-testid="toggle-text"] p');
-                // Example: Member since: Nov 2023, Deals bought: 60, Posted: May 12, 2024
-                const dateElement = el.querySelectorAll('[data-testid="discussion-review-info"] span')[3];
                 const ratingStars = Array.from(el.querySelectorAll('.relative.mr-2 img')).map((img) => img.alt);
                 // Use Alt-Text to extracct the rating value (Taco value)
                 const rating = ratingStars
@@ -58,7 +56,6 @@ function scrapeReviews(url) {
                     reviewTitle: (_e = (_d = titleElement === null || titleElement === void 0 ? void 0 : titleElement.textContent) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : 'No title',
                     reviewText: (_g = (_f = textElement === null || textElement === void 0 ? void 0 : textElement.textContent) === null || _f === void 0 ? void 0 : _f.trim()) !== null && _g !== void 0 ? _g : 'No review text',
                     rating: rating,
-                    postedDate: (_j = (_h = dateElement === null || dateElement === void 0 ? void 0 : dateElement.textContent) === null || _h === void 0 ? void 0 : _h.replace('Posted:', '').trim()) !== null && _j !== void 0 ? _j : 'No date',
                 };
             });
         });
@@ -78,7 +75,14 @@ function main() {
         while (true) {
             const reviewURL = `${url}/reviews/?page=${page}`;
             try {
-                const pageReviews = yield scrapeReviews(reviewURL);
+                let pageReviews = yield scrapeReviews(reviewURL);
+                pageReviews = pageReviews.map((review) => {
+                    review.sourceUrl = reviewURL;
+                    return review;
+                });
+                if (pageReviews.length === 0) {
+                    break;
+                }
                 reviews = reviews.concat(pageReviews);
                 console.log(`Scraped ${pageReviews.length} reviews from page ${page}`);
                 page++;

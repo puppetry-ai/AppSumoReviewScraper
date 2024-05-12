@@ -7,6 +7,7 @@ interface Review {
   reviewTitle: string;
   reviewText: string;
   rating: number;
+  sourceUrl?: string;
 }
 
 async function scrapeReviews(url: string): Promise<Review[]> {
@@ -68,7 +69,6 @@ async function scrapeReviews(url: string): Promise<Review[]> {
         reviewTitle: titleElement?.textContent?.trim() ?? 'No title',
         reviewText: textElement?.textContent?.trim() ?? 'No review text',
         rating: rating,
-        sourceUrl: url,
       };
     });
   });
@@ -90,7 +90,14 @@ async function main() {
   while (true) {
     const reviewURL = `${url}/reviews/?page=${page}`;
     try {
-      const pageReviews = await scrapeReviews(reviewURL);
+      let pageReviews = await scrapeReviews(reviewURL);
+      pageReviews = pageReviews.map((review) => {
+        review.sourceUrl = reviewURL;
+        return review;
+      });
+      if (pageReviews.length === 0) {
+        break;
+      }
       reviews = reviews.concat(pageReviews);
       console.log(`Scraped ${pageReviews.length} reviews from page ${page}`);
       page++;
