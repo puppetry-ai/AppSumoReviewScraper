@@ -2,29 +2,58 @@ import puppeteer from 'puppeteer';
 
 interface Review {
   username: string;
-  rating: number;
+  reviewTitle: string;
   reviewText: string;
   postedDate: string;
 }
 
 async function scrapeReviews(url: string): Promise<Review[]> {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: false, // Launch in headful mode
+    slowMo: 50, // Slow down Puppeteer operations by 50 milliseconds to see what's happening
+    args: ['--start-maximized'], // Start with a maximized window
+  });
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'networkidle2' });
 
   console.log('Waiting for the page to load...');
 
-  const content = await page.content();
-  console.log(content.substring(0, 2000)); // logs first 2000 characters of the page HTML
+  const frame = await page
+    .frames()
+    .find((f) => f.url().includes('the-part-of-the-url'));
+
+  if (frame) {
+    await frame.waitForSelector('[data-testid="review-card-wrapper"]', {
+      visible: true,
+    });
+  }
+
+  await page.waitForSelector('[data-testid="review-card-wrapper"]', {
+    visible: true,
+  });
 
   const reviews = await page.evaluate(() => {
-    const reviewElements = Array.from(document.querySelectorAll('.review'));
-    console.log(`Found ${reviewElements.length} reviews`);
+    const reviewElements = Array.from(
+      document.querySelectorAll('[data-testid="review-card-wrapper"]')
+    );
+
+    console.log(`Found ${reviewElements.length} review elements`);
     return reviewElements.map((el) => ({
-      username: el.querySelector('.username')?.textContent?.trim() ?? '',
-      rating: Number(el.querySelector('.rating')?.textContent?.trim() ?? 0),
-      reviewText: el.querySelector('.review-text')?.textContent?.trim() ?? '',
-      postedDate: el.querySelector('.posted-date')?.textContent?.trim() ?? '',
+      username:
+        el
+          .querySelector('[data-testid="discussion-user-info"] a')
+          ?.textContent?.trim() ?? 'No username',
+      reviewTitle:
+        el.querySelector('.font-header')?.textContent?.trim() ?? 'No title',
+      reviewText:
+        el
+          .querySelector('[data-testid="toggle-text"] p')
+          ?.textContent?.trim() ?? 'No review text',
+      postedDate:
+        el
+          .querySelector('[data-testid="discussion-review-info"] span')
+          ?.textContent?.replace('Posted:', '')
+          .trim() ?? 'No date',
     }));
   });
 
