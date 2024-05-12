@@ -41,6 +41,7 @@ async function scrapeReviews(url: string): Promise<Review[]> {
 
     // This works as of May 12, 2024
     return reviewElements.map((el) => {
+      // First link is the image link, second link is the profile link
       const usernameElement = el.querySelectorAll(
         '[data-testid="discussion-user-info"] a'
       )[1] as HTMLElement;
@@ -51,13 +52,17 @@ async function scrapeReviews(url: string): Promise<Review[]> {
       const textElement = el.querySelector(
         '[data-testid="toggle-text"] p'
       ) as HTMLElement;
+
+      // Example: Member since: Nov 2023, Deals bought: 60, Posted: May 12, 2024
       const dateElement = el.querySelectorAll(
         '[data-testid="discussion-review-info"] span'
-      )[1] as HTMLElement;
+      )[2] as HTMLElement;
 
       const ratingStars = Array.from(
         el.querySelectorAll('.relative.mr-2 img')
       ).map((img) => (img as HTMLImageElement).alt);
+
+      // Use Alt-Text to extracct the rating value (Taco value)
       const rating = ratingStars
         .filter((alt) => alt.includes('stars'))
         .map((alt) => parseInt(alt))[0];
