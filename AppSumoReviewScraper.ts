@@ -38,6 +38,8 @@ async function scrapeReviews(url: string): Promise<Review[]> {
     const reviewElements = Array.from(
       document.querySelectorAll('[data-testid="review-card-wrapper"]')
     );
+
+    // This works as of May 12, 2024
     return reviewElements.map((el) => {
       const usernameElement = el.querySelectorAll(
         '[data-testid="discussion-user-info"] a'

@@ -1,6 +1,6 @@
 ## Description
 
-This is a simple script that extracts AppSumo reviews for a given product from the AppSumo website. It uses Puppeteer to navigate to the product page and extract the reviews using a CSS selector.
+This is a simple script that extracts AppSumo reviews for a given product from the AppSumo website. It uses Puppeteer to navigate to the product page and extract the reviews using a CSS selector. The script works as of May 12, 2024. Since this script depends on the AppSumo website, it may stop working at any time.
 
 ## Usage
 
