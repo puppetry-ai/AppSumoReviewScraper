@@ -24,7 +24,7 @@ The script runs in headful mode, which means that it will open a new browser win
 
 ## License
 
-This script is licensed under the MIT License. You can use it for any purpose, including commercial use, as long as you include the original author's name and the license information in the script.
+This script is licensed under the MIT License.
 
 ## Disclaimer
 
