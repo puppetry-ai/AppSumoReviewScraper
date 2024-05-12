@@ -5,7 +5,7 @@ interface Review {
   userProfilePicture: string;
   reviewTitle: string;
   reviewText: string;
-  rating: string;
+  rating: number;
   postedDate: string;
 }
 
@@ -39,9 +39,9 @@ async function scrapeReviews(url: string): Promise<Review[]> {
       document.querySelectorAll('[data-testid="review-card-wrapper"]')
     );
     return reviewElements.map((el) => {
-      const usernameElement = el.querySelector(
+      const usernameElement = el.querySelectorAll(
         '[data-testid="discussion-user-info"] a'
-      ) as HTMLElement;
+      )[1] as HTMLElement;
       const imageElement = el.querySelector(
         '[data-testid="discussion-user-info"] img'
       ) as HTMLImageElement;
@@ -49,18 +49,23 @@ async function scrapeReviews(url: string): Promise<Review[]> {
       const textElement = el.querySelector(
         '[data-testid="toggle-text"] p'
       ) as HTMLElement;
-      const dateElement = el.querySelector(
+      const dateElement = el.querySelectorAll(
         '[data-testid="discussion-review-info"] span'
-      ) as HTMLElement;
+      )[1] as HTMLElement;
+
+      const ratingStars = Array.from(
+        el.querySelectorAll('.relative.mr-2 img')
+      ).map((img) => (img as HTMLImageElement).alt);
+      const rating = ratingStars
+        .filter((alt) => alt.includes('stars'))
+        .map((alt) => parseInt(alt))[0];
 
       return {
         username: usernameElement?.textContent?.trim() ?? 'No username',
         userProfilePicture: imageElement?.src ?? '',
         reviewTitle: titleElement?.textContent?.trim() ?? 'No title',
         reviewText: textElement?.textContent?.trim() ?? 'No review text',
-        rating: Array.from(el.querySelectorAll('.relative.mr-2 img'))
-          .map((img) => (img as HTMLImageElement).src)
-          .join(', '),
+        rating: rating,
         postedDate:
           dateElement?.textContent?.replace('Posted:', '').trim() ?? 'No date',
       };

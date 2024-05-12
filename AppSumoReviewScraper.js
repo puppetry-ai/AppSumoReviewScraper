@@ -38,19 +38,21 @@ function scrapeReviews(url) {
             const reviewElements = Array.from(document.querySelectorAll('[data-testid="review-card-wrapper"]'));
             return reviewElements.map((el) => {
                 var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-                const usernameElement = el.querySelector('[data-testid="discussion-user-info"] a');
+                const usernameElement = el.querySelectorAll('[data-testid="discussion-user-info"] a')[1];
                 const imageElement = el.querySelector('[data-testid="discussion-user-info"] img');
                 const titleElement = el.querySelector('.font-header');
                 const textElement = el.querySelector('[data-testid="toggle-text"] p');
-                const dateElement = el.querySelector('[data-testid="discussion-review-info"] span');
+                const dateElement = el.querySelectorAll('[data-testid="discussion-review-info"] span')[1];
+                const ratingStars = Array.from(el.querySelectorAll('.relative.mr-2 img')).map((img) => img.alt);
+                const rating = ratingStars
+                    .filter((alt) => alt.includes('stars'))
+                    .map((alt) => parseInt(alt))[0];
                 return {
                     username: (_b = (_a = usernameElement === null || usernameElement === void 0 ? void 0 : usernameElement.textContent) === null || _a === void 0 ? void 0 : _a.trim()) !== null && _b !== void 0 ? _b : 'No username',
                     userProfilePicture: (_c = imageElement === null || imageElement === void 0 ? void 0 : imageElement.src) !== null && _c !== void 0 ? _c : '',
                     reviewTitle: (_e = (_d = titleElement === null || titleElement === void 0 ? void 0 : titleElement.textContent) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : 'No title',
                     reviewText: (_g = (_f = textElement === null || textElement === void 0 ? void 0 : textElement.textContent) === null || _f === void 0 ? void 0 : _f.trim()) !== null && _g !== void 0 ? _g : 'No review text',
-                    rating: Array.from(el.querySelectorAll('.relative.mr-2 img'))
-                        .map((img) => img.src)
-                        .join(', '),
+                    rating: rating,
                     postedDate: (_j = (_h = dateElement === null || dateElement === void 0 ? void 0 : dateElement.textContent) === null || _h === void 0 ? void 0 : _h.replace('Posted:', '').trim()) !== null && _j !== void 0 ? _j : 'No date',
                 };
             });
