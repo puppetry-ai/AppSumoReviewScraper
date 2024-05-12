@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import fs from 'fs';
 
 interface Review {
   username: string;
@@ -85,10 +86,30 @@ async function scrapeReviews(url: string): Promise<Review[]> {
 
 // Use this function to save the reviews as JSON
 async function main() {
-  const url = 'https://appsumo.com/products/puppetry/reviews/?page=1';
+  // Read the URL from the command line argument if provided
+  // Otherwise, use the default URL
+  const url = process.argv[2] || 'https://appsumo.com/products/puppetry';
+
   console.log(`Scraping reviews from ${url}`);
-  const reviews = await scrapeReviews(url);
-  console.log(JSON.stringify(reviews, null, 2));
+
+  let page = 1;
+  let reviews: Review[] = [];
+  while (true) {
+    const reviewURL = `${url}/reviews/?page=${page}`;
+    try {
+      const pageReviews = await scrapeReviews(reviewURL);
+      reviews = reviews.concat(pageReviews);
+      console.log(`Scraped ${pageReviews.length} reviews from page ${page}`);
+      page++;
+    } catch (error) {
+      console.error(error);
+      break;
+    }
+  }
+
+  const prductName = url.split('/')[4];
+  fs.writeFileSync(`${prductName}.json`, JSON.stringify(reviews, null, 2));
+  console.log(`Reviews saved to ${prductName}.json`);
 }
 
 main();
